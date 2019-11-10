@@ -1,47 +1,41 @@
-import logging
-import os
-from logging.handlers import RotatingFileHandler
-
 from flask import Flask, request, jsonify
 
-from celery_config import make_celery
+from config import make_celery, set_logger
 
 app = Flask(__name__)
 
 celery = make_celery(app)
 
-if not os.path.exists('logs'):
-    os.mkdir('logs')
+set_logger(app)
 
-file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=10)
-file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
-file_handler.setLevel(logging.INFO)
-
-app.logger.addHandler(file_handler)
-app.logger.setLevel(logging.INFO)
-
-app.logger.info('Calculate Service Started')
+app.logger.info('Calculate MicroService starting...')
 
 
 @app.route("/calculate", methods=['POST'])
 def calculate():
     req_data = request.json
-    x = req_data['number1']
-    y = req_data['number2']
+    x = req_data['x']
+    y = req_data['y']
+
+    app.logger.info('Received: x: {}, y: {}'.format(x, y))
 
     celery.send_task('multiply', kwargs={'x': x, 'y': y})
 
-    return jsonify({'x': x, 'y': y}), 201
+    app.logger.info('x: {}, y: {} sending to celery application for the calculation.'.format(x, y))
+
+    return jsonify({'x': x, 'y': y})
 
 
 @app.route("/callback", methods=['POST'])
 def callback():
     req_data = request.json
     result = req_data['result']
+    x = req_data['x']
+    y = req_data['y']
 
-    print('Result of callback', result)
+    app.logger.info('Result of the {} * {} = {}'.format(x, y, result))
 
-    return {'result': result}
+    return {'result': result, 'x': x, 'y': y}
 
 
 if __name__ == "__main__":
