@@ -4,13 +4,12 @@ from logging.handlers import RotatingFileHandler
 
 from celery import Celery
 
-BROKER_URL = 'amqp://pyizcpcy:i8-DLpC9lKVReHWD0--fNDPT_QOJzNCJ@orangutan.rmq.cloudamqp.com/pyizcpcy'
-LOG_PATH = 'logs/app.log'
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL')
 LOG_FORMATTER = '%(asctime)s %(filename)s %(funcName)12s() %(levelname)s %(message)s'
 
 
 def make_celery(app):
-    celery = Celery(app.import_name)
+    celery = Celery('tasks')
 
     celery.config_from_object(CeleryConfig)
 
@@ -24,7 +23,7 @@ def make_celery(app):
 
 
 class CeleryConfig:
-    broker_url = BROKER_URL
+    broker_url = CELERY_BROKER_URL
     broker_pool_limit = 1
     broker_connection_timeout = 30
     broker_heartbeat = None
@@ -36,7 +35,7 @@ def set_logger(app):
     if not os.path.exists('logs'):
         os.mkdir('logs')
 
-    file_handler = RotatingFileHandler(LOG_PATH, maxBytes=10240, backupCount=10)
+    file_handler = RotatingFileHandler('logs/app.log', maxBytes=10240, backupCount=10)
     file_handler.setFormatter(logging.Formatter(LOG_FORMATTER))
     file_handler.setLevel(logging.INFO)
 
