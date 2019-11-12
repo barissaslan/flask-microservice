@@ -31,7 +31,7 @@ def calculate(x: float, y: float) -> jsonify:
 def callback(result: float) -> jsonify:
     app.logger.info('Result: {}'.format(result))
 
-    return {'result': result}
+    return jsonify({'result': result})
 
 
 if __name__ == "__main__":
