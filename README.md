@@ -6,6 +6,7 @@ A basic Flask microservice application.
 
 ```bash
 git clone git@github.com:barissaslan/flask-microservice.git
+cd ./flask-microservice
 ```
 
 ### Docker Build 
